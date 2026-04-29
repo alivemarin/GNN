@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GNN 추천 시스템 보고서</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* 커스텀 스크롤바 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b; 
+        }
+
+        /* 차트 컨테이너 유틸리티 */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        /* Vibrant Palette - "Neon Nights" */
+        /* Primary: #6366f1 (Indigo)
+           Secondary: #ec4899 (Pink)
+           Accent: #22d3ee (Cyan)
+           Background: #0f172a (Slate 900)
+           Card: #1e293b (Slate 800)
+        */
+        
+        /* 한글 폰트 적용 (기본 시스템 폰트 활용) */
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+        }
+    </style>
+    <!-- 선택된 팔레트: 네온/다크 테크 테마 (고대비 & 생동감) -->
+</head>
+<body class="bg-slate-900 text-slate-100 font-sans leading-relaxed selection:bg-cyan-500 selection:text-white">
+
+    <!-- 메인 컨테이너 -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-16">
+
+        <!-- 1. 헤더 섹션 -->
+        <header class="text-center space-y-4">
+            <div class="inline-block px-4 py-1 rounded-full bg-indigo-500/20 text-indigo-300 text-sm font-semibold tracking-wide uppercase border border-indigo-500/30">
+                기말 프로젝트 보고서
+            </div>
+            <h1 class="text-4xl md:text-6xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-indigo-400 to-pink-400">
+                그래프 신경망(GNN)<br>추천 시스템
+            </h1>
+            <p class="text-slate-400 max-w-2xl mx-auto text-lg">
+                OTC 코인 시장의 데이터 희소성 해결을 위한 Dual-Stream LightGCN 접근법
+                <br>
+                <span class="text-sm mt-2 block opacity-70">과목: 그래프 신경망과 빅데이터 | 제출일: 2025.12.03</span>
+            </p>
+        </header>
+
+        <!-- 2. 데이터 개요 섹션 -->
+        <section>
+            <div class="mb-6 border-l-4 border-cyan-400 pl-4">
+                <h2 class="text-3xl font-bold text-white">01. 데이터셋 분석</h2>
+                <p class="text-slate-400 mt-1">OTC 데이터셋 구조 분석 및 99.87%의 극심한 희소성(Sparsity) 해결 전략.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <!-- KPI 카드 -->
+                <div class="bg-slate-800 rounded-xl p-6 shadow-lg border border-slate-700 hover:border-cyan-400 transition-colors">
+                    <div class="text-cyan-400 text-sm font-bold uppercase tracking-wider">총 상호작용</div>
+                    <div class="text-4xl font-extrabold text-white mt-2">35,400</div>
+                    <div class="text-slate-500 text-xs mt-1">User-Item Pairs</div>
+                </div>
+                <div class="bg-slate-800 rounded-xl p-6 shadow-lg border border-slate-700 hover:border-pink-400 transition-colors">
+                    <div class="text-pink-400 text-sm font-bold uppercase tracking-wider">사용자 수</div>
+                    <div class="text-4xl font-extrabold text-white mt-2">4,804</div>
+                    <div class="text-slate-500 text-xs mt-1">Unique Investors</div>
+                </div>
+                <div class="bg-slate-800 rounded-xl p-6 shadow-lg border border-slate-700 hover:border-indigo-400 transition-colors">
+                    <div class="text-indigo-400 text-sm font-bold uppercase tracking-wider">아이템 수</div>
+                    <div class="text-4xl font-extrabold text-white mt-2">5,844</div>
+                    <div class="text-slate-500 text-xs mt-1">Unique Coins</div>
+                </div>
+                <div class="bg-slate-800 rounded-xl p-6 shadow-lg border border-slate-700 hover:border-red-400 transition-colors">
+                    <div class="text-red-400 text-sm font-bold uppercase tracking-wider">희소성</div>
+                    <div class="text-4xl font-extrabold text-white mt-2">99.87%</div>
+                    <div class="text-slate-500 text-xs mt-1">Highly Sparse Graph</div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-center bg-slate-800/50 rounded-2xl p-8 border border-slate-700">
+                <div class="md:col-span-1">
+                    <h3 class="text-xl font-bold text-white mb-3">데이터 분할 전략</h3>
+                    <p class="text-slate-300 text-sm mb-4">
+                        상호작용이 적은 '콜드 유저(Cold User)'에 대한 평가를 보장하기 위해 사용자별 계층화 분할(Stratified Split)을 적용했습니다.
+                    </p>
+                    <ul class="space-y-2 text-sm text-slate-400">
+                        <li class="flex items-center"><span class="w-3 h-3 rounded-full bg-cyan-400 mr-2"></span> Train: 구조 학습 (Structure Learning)</li>
+                        <li class="flex items-center"><span class="w-3 h-3 rounded-full bg-indigo-400 mr-2"></span> Validation: 하이퍼파라미터 튜닝</li>
+                        <li class="flex items-center"><span class="w-3 h-3 rounded-full bg-pink-400 mr-2"></span> Test: 최종 성능 평가</li>
+                    </ul>
+                </div>
+                <div class="md:col-span-2 flex justify-center">
+                    <div class="chart-container">
+                        <canvas id="dataSplitChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. 학습 양상 (Loss) -->
+        <section>
+            <div class="mb-6 border-l-4 border-indigo-400 pl-4">
+                <h2 class="text-3xl font-bold text-white">02. 학습 양상</h2>
+                <p class="text-slate-400 mt-1">40 Epoch 동안 연결(CCA) 및 품질(CCB) 모델의 수렴 과정 모니터링.</p>
+            </div>
+
+            <div class="bg-slate-800 rounded-2xl p-6 md:p-8 shadow-xl border border-slate-700">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2">
+                        <div class="chart-container w-full">
+                            <canvas id="lossChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-1 flex flex-col justify-center space-y-6">
+                        <div class="bg-slate-900/80 p-4 rounded-lg border-l-2 border-cyan-400">
+                            <h4 class="font-bold text-cyan-400 mb-1">빠른 수렴 (Rapid Convergence)</h4>
+                            <p class="text-xs text-slate-300">두 모델 모두 초기 10 Epoch 내에 손실이 급격히 감소하며 효율적인 특징 학습을 보여줍니다.</p>
+                        </div>
+                        <div class="bg-slate-900/80 p-4 rounded-lg border-l-2 border-pink-400">
+                            <h4 class="font-bold text-pink-400 mb-1">안정성 (Stability)</h4>
+                            <p class="text-xs text-slate-300">20 Epoch 이후 손실이 안정화되며(CCA ~0.117, CCB ~0.189), 과적합 없이 최적 상태에 도달했습니다.</p>
+                        </div>
+                        <div class="bg-slate-900/80 p-4 rounded-lg border-l-2 border-indigo-400">
+                            <h4 class="font-bold text-indigo-400 mb-1">태스크 난이도</h4>
+                            <p class="text-xs text-slate-300">이진 분류인 '연결 예측'의 손실이 회귀인 '평점 예측'보다 낮아, 연결성 학습이 상대적으로 용이함을 시사합니다.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. 모델 아키텍처 (HTML 다이어그램) -->
+        <section>
+            <div class="mb-6 border-l-4 border-pink-400 pl-4">
+                <h2 class="text-3xl font-bold text-white">03. 이중 스트림 아키텍처</h2>
+                <p class="text-slate-400 mt-1">'클릭 가능성'과 '만족 가능성'을 분리한 새로운 앙상블 접근 방식.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- 텍스트 설명 -->
+                <div class="space-y-6">
+                    <div class="bg-slate-800 p-6 rounded-xl border border-slate-700">
+                        <h3 class="text-xl font-bold text-white mb-2">왜 두 개의 스트림인가?</h3>
+                        <p class="text-slate-300 leading-relaxed">
+                            단일 GNN 모델은 인기 있는 아이템과 사용자가 실제로 만족할 아이템을 구별하는 데 한계가 있습니다. 이를 두 가지 관점으로 분리했습니다:
+                        </p>
+                        <div class="mt-4 space-y-3">
+                            <div class="flex items-start">
+                                <span class="text-2xl mr-3">🔗</span>
+                                <div>
+                                    <strong class="text-cyan-400 block">스트림 A: 연결성 (CCA)</strong>
+                                    <span class="text-sm text-slate-400">이진 분류. 상호작용 확률 예측. 내적(Inner Product) 디코더 사용.</span>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <span class="text-2xl mr-3">⭐</span>
+                                <div>
+                                    <strong class="text-pink-400 block">스트림 B: 품질 (CCB)</strong>
+                                    <span class="text-sm text-slate-400">회귀(Regression). 만족도 평점(0.5 - 5.0) 예측. MLP Head 디코더 사용.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gradient-to-r from-indigo-900/50 to-slate-800 p-6 rounded-xl border border-indigo-500/30">
+                        <h3 class="text-lg font-bold text-white mb-2">앙상블 로직 (Ensemble Logic)</h3>
+                        <p class="text-sm text-slate-300 font-mono bg-black/30 p-3 rounded">
+                            Final Score = &alpha; * Norm(Conn) + (1-&alpha;) * Norm(Qual)
+                        </p>
+                        <p class="text-xs text-slate-400 mt-2">
+                            최적화된 Alpha (&alpha;) = <span class="text-cyan-400 font-bold">0.7</span> (연결 확률에 더 높은 비중 부여).
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 구조 다이어그램 (No SVG/Mermaid) -->
+                <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 flex flex-col items-center justify-center relative overflow-hidden">
+                    <!-- 배경 그리드 효과 -->
+                    <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#6366f1 1px, transparent 1px); background-size: 20px 20px;"></div>
+                    
+                    <div class="relative z-10 flex flex-col items-center w-full max-w-sm space-y-4">
+                        
+                        <!-- 입력 -->
+                        <div class="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg text-center shadow-md">
+                            <span class="text-xs text-slate-400 uppercase tracking-widest">입력 (Input)</span>
+                            <div class="font-bold text-white">사용자-아이템 그래프</div>
+                        </div>
+
+                        <!-- 화살표 -->
+                        <div class="text-slate-500 text-xl font-bold">↓</div>
+
+                        <!-- 백본 -->
+                        <div class="w-full p-4 bg-indigo-600/20 border border-indigo-500 rounded-lg text-center shadow-lg backdrop-blur-sm">
+                            <span class="text-xs text-indigo-300 uppercase tracking-widest">백본 (Backbone)</span>
+                            <div class="font-bold text-white text-lg">LightGCN 인코더</div>
+                            <div class="text-xs text-indigo-200 mt-1">2-Hop 전파 (Propagation)</div>
+                        </div>
+
+                        <!-- 분기 화살표 -->
+                        <div class="flex justify-between w-full px-12 text-slate-500 text-xl font-bold">
+                            <span>↙</span>
+                            <span>↘</span>
+                        </div>
+
+                        <!-- 듀얼 스트림 -->
+                        <div class="flex justify-between w-full gap-4">
+                            <!-- 스트림 A -->
+                            <div class="flex-1 p-3 bg-cyan-900/30 border border-cyan-500/50 rounded-lg text-center">
+                                <div class="text-cyan-400 font-bold text-sm">CCA</div>
+                                <div class="text-[10px] text-slate-400">연결성 (Connection)</div>
+                                <div class="mt-2 text-xs bg-cyan-900/50 rounded px-1 py-0.5 border border-cyan-500/30">내적 (Inner Prod.)</div>
+                            </div>
+                            <!-- 스트림 B -->
+                            <div class="flex-1 p-3 bg-pink-900/30 border border-pink-500/50 rounded-lg text-center">
+                                <div class="text-pink-400 font-bold text-sm">CCB</div>
+                                <div class="text-[10px] text-slate-400">품질 (Quality)</div>
+                                <div class="mt-2 text-xs bg-pink-900/50 rounded px-1 py-0.5 border border-pink-500/30">MLP Head</div>
+                            </div>
+                        </div>
+
+                        <!-- 병합 화살표 -->
+                        <div class="flex justify-between w-full px-12 text-slate-500 text-xl font-bold">
+                            <span>↘</span>
+                            <span>↙</span>
+                        </div>
+
+                        <!-- 앙상블 -->
+                        <div class="w-full p-3 bg-slate-700 border-2 border-slate-500 border-dashed rounded-lg text-center">
+                            <span class="text-xs text-slate-400 uppercase tracking-widest">가중 앙상블</span>
+                            <div class="font-bold text-white">최종 점수 계산</div>
+                        </div>
+
+                         <!-- 화살표 -->
+                         <div class="text-slate-500 text-xl font-bold">↓</div>
+
+                         <!-- 출력 -->
+                         <div class="w-full p-3 bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-emerald-500 rounded-lg text-center">
+                            <div class="font-bold text-emerald-400">최종 추천 목록</div>
+                            <div class="text-[10px] text-emerald-200">적응형 임계값 (Adaptive Threshold) 필터링</div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. 결과 및 성능 -->
+        <section>
+            <div class="mb-6 border-l-4 border-emerald-400 pl-4">
+                <h2 class="text-3xl font-bold text-white">04. 최종 결과</h2>
+                <p class="text-slate-400 mt-1">테스트 세트에 대한 정량적 평가.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- 지표 막대 차트 -->
+                <div class="bg-slate-800 rounded-xl p-6 border border-slate-700">
+                    <h3 class="text-lg font-bold text-white mb-4">검증 지표 (Validation Metrics)</h3>
+                    <div class="chart-container">
+                        <canvas id="metricsChart"></canvas>
+                    </div>
+                    <p class="text-xs text-center text-slate-500 mt-4">높은 AUC (0.7988)는 모델의 강력한 랭킹 능력을 시사합니다.</p>
+                </div>
+
+                <!-- 추천 비율 파이 차트 -->
+                <div class="bg-slate-800 rounded-xl p-6 border border-slate-700">
+                    <h3 class="text-lg font-bold text-white mb-4">추천 비율 (Recommendation Rate)</h3>
+                    <div class="chart-container">
+                        <canvas id="recRateChart"></canvas>
+                    </div>
+                    <div class="mt-4 text-center">
+                        <span class="text-2xl font-bold text-white">78.5%</span>
+                        <span class="text-sm text-slate-400 block">추천된 아이템 (157/200)</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. 핵심 전략 (결론) -->
+        <section>
+            <div class="mb-6 border-l-4 border-amber-400 pl-4">
+                <h2 class="text-3xl font-bold text-white">05. 핵심 전략</h2>
+                <p class="text-slate-400 mt-1">성능 극대화를 위해 사용된 혁신적 기법들.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-slate-800 p-6 rounded-xl border-t-4 border-amber-400 shadow-lg">
+                    <div class="text-amber-400 text-2xl mb-2">⚡</div>
+                    <h4 class="font-bold text-white text-lg mb-2">적응형 임계값<br>(Adaptive Thresholding)</h4>
+                    <p class="text-sm text-slate-400">
+                        고정된 0.5 확률 대신, Grid Search를 통해 F1 점수를 최대화하는 동적 임계값 <strong class="text-white">0.1462</strong>를 찾아 적용했습니다.
+                    </p>
+                </div>
+                
+                <div class="bg-slate-800 p-6 rounded-xl border-t-4 border-purple-400 shadow-lg">
+                    <div class="text-purple-400 text-2xl mb-2">⚖️</div>
+                    <h4 class="font-bold text-white text-lg mb-2">강건한 정규화<br>(Robust Normalization)</h4>
+                    <p class="text-sm text-slate-400">
+                        내적(CCA)과 회귀(CCB) 출력의 스케일 차이를 보정하기 위해 백분위수 기반(1%-99%) 정규화를 적용하여 이상치에 강건하게 설계했습니다.
+                    </p>
+                </div>
+
+                <div class="bg-slate-800 p-6 rounded-xl border-t-4 border-cyan-400 shadow-lg">
+                    <div class="text-cyan-400 text-2xl mb-2">❄️</div>
+                    <h4 class="font-bold text-white text-lg mb-2">콜드 스타트 대처<br>(Min-K Fallback)</h4>
+                    <p class="text-sm text-slate-400">
+                        상호작용이 적은 사용자에 대해 추천 목록이 비는 것을 방지하기 위해, 최소 2개의 추천을 보장하는 <strong class="text-white">Min-K (2)</strong> 로직을 구현했습니다.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 푸터 -->
+        <footer class="text-center text-slate-600 text-sm py-8 border-t border-slate-800 mt-12">
+            <p>&copy; 2025 그래프 신경망 프로젝트 팀</p>
+            <p class="mt-1">Generated by Canvas Infographics</p>
+        </footer>
+
+    </div>
+
+    <!-- 차트 설정 -->
+    <script>
+        // --- 1. 레이블 줄바꿈 유틸리티 ---
+        function splitLabel(label) {
+            if (label.length <= 10) return label; // 한글은 영문보다 폭이 넓으므로 기준을 약간 줄임
+            const words = label.split(' ');
+            const lines = [];
+            let currentLine = words[0];
+
+            for (let i = 1; i < words.length; i++) {
+                if ((currentLine + " " + words[i]).length <= 12) {
+                    currentLine += " " + words[i];
+                } else {
+                    lines.push(currentLine);
+                    currentLine = words[i];
+                }
+            }
+            lines.push(currentLine);
+            return lines;
+        }
+
+        // --- 2. 툴팁 설정 ---
+        const commonTooltipOptions = {
+            callbacks: {
+                title: function(tooltipItems) {
+                    const item = tooltipItems[0];
+                    let label = item.chart.data.labels[item.dataIndex];
+                    if (Array.isArray(label)) {
+                        return label.join(' ');
+                    } else {
+                        return label;
+                    }
+                }
+            },
+            backgroundColor: 'rgba(15, 23, 42, 0.9)', // Slate 900
+            titleColor: '#f8fafc',
+            bodyColor: '#cbd5e1',
+            borderColor: '#334155',
+            borderWidth: 1,
+            padding: 10,
+            cornerRadius: 4
+        };
+
+        // --- 3. 다크 테마용 차트 글로벌 기본값 ---
+        Chart.defaults.color = '#94a3b8'; // Slate 400
+        Chart.defaults.borderColor = '#334155'; // Slate 700
+        Chart.defaults.font.family = "'Pretendard', sans-serif";
+
+        // --- 차트 1: 데이터 분할 (도넛) ---
+        new Chart(document.getElementById('dataSplitChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['학습 세트 (Train)', '검증 세트 (Val)', '테스트 세트 (Test)'],
+                datasets: [{
+                    data: [70, 15, 15],
+                    backgroundColor: ['#22d3ee', '#6366f1', '#ec4899'], // Cyan, Indigo, Pink
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } },
+                    tooltip: commonTooltipOptions
+                },
+                cutout: '70%'
+            }
+        });
+
+        // --- 차트 2: 손실 이력 (라인) ---
+        new Chart(document.getElementById('lossChart'), {
+            type: 'line',
+            data: {
+                // X축: Epochs 1, 5, 10, 20, 30, 40
+                labels: ['에폭 1', '에폭 5', '에폭 10', '에폭 20', '에폭 30', '에폭 40'],
+                datasets: [
+                    {
+                        label: '연결 모델 (CCA)',
+                        data: [0.6656, 0.2641, 0.1970, 0.1464, 0.1283, 0.1170],
+                        borderColor: '#22d3ee', // Cyan
+                        backgroundColor: 'rgba(34, 211, 238, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#22d3ee'
+                    },
+                    {
+                        label: '품질 모델 (CCB)',
+                        data: [0.6876, 0.3534, 0.2725, 0.2225, 0.2023, 0.1893],
+                        borderColor: '#ec4899', // Pink
+                        backgroundColor: 'rgba(236, 72, 153, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#ec4899'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top', align: 'end' },
+                    tooltip: commonTooltipOptions
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        grid: { color: '#334155' }, // Slate 700
+                        title: { display: true, text: '손실 값 (Loss Value)' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+
+        // --- 차트 3: 지표 (막대) ---
+        new Chart(document.getElementById('metricsChart'), {
+            type: 'bar',
+            data: {
+                labels: ['검증 F1 점수', '검증 AUC'],
+                datasets: [{
+                    label: '성능 (Performance)',
+                    data: [0.7693, 0.7988],
+                    backgroundColor: [
+                        'rgba(168, 85, 247, 0.8)', // Purple
+                        'rgba(34, 211, 238, 0.8)'  // Cyan
+                    ],
+                    borderColor: [
+                        '#a855f7',
+                        '#22d3ee'
+                    ],
+                    borderWidth: 1,
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y', // 수평 막대
+                plugins: {
+                    legend: { display: false },
+                    tooltip: commonTooltipOptions
+                },
+                scales: {
+                    x: {
+                        min: 0,
+                        max: 1.0,
+                        grid: { color: '#334155' }
+                    },
+                    y: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+
+        // --- 차트 4: 추천 비율 (파이) ---
+        // 데이터 출처: 결과txt.txt "Total recommends = 157/200"
+        new Chart(document.getElementById('recRateChart'), {
+            type: 'pie',
+            data: {
+                labels: ['추천 함 (O)', '추천 안 함 (X)'],
+                datasets: [{
+                    data: [157, 43], // 157 Rec, 43 Not Rec
+                    backgroundColor: ['#10b981', '#ef4444'], // Emerald (Green), Red
+                    borderWidth: 0,
+                    hoverOffset: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } },
+                    tooltip: commonTooltipOptions
+                }
+            }
+        });
+
+    </script>
+    <!-- 
+        NO SVG USED.
+        NO MERMAID JS USED.
+        Colors from "Vibrant/Neon" Palette.
+        Korean Language Applied.
+    -->
+</body>
+</html>
