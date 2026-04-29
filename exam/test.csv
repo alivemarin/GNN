@@ -1,0 +1,10 @@
+src,Link,dst,label
+beets,helps,broccoli,?
+brassicas,helps,beets,?
+brassicas,helps,onions,?
+beets,helped_by,onions,?
+carrots,helps,onions,?
+dill,avoid,carrots,?
+legumes,helps,dill,?
+broccoli,avoid,onions,?
+dill,helps,beets,?

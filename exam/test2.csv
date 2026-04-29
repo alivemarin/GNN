@@ -1,0 +1,11 @@
+src,dst,Packet_Size,Protocol,Encryption_Type,Packet_Delay(ms),Attack_label
+Node_7,Node_2,273,TCP,AES-192,8.83,?
+Node_3,Node_4,845,UDP,AES-256,5.46,?
+Node_1,Node_5,807,UDP,AES-128,7.28,?
+Node_8,Node_7,1425,TCP,AES-128,7.51,?
+Node_5,Node_2,883,TCP,AES-128,7.44,?
+Node_7,Node_4,1333,TCP,AES-256,7.76,?
+Node_9,Node_3,1392,TCP,AES-128,8.73,?
+Node_3,Node_4,590,TCP,AES-192,10.17,?
+Node_6,Node_3,1385,UDP,AES-128,13.07,?
+Node_3,Node_9,1119,TCP,AES-128,11.88,?
